@@ -14,20 +14,20 @@ interface IUnsafeBank {
     function balances(address addr) external view returns (uint256);
 }
 
-contract BankTest is Test {
+contract BankTest is Test {         //繼承 Test 合約  
     unsafeBank internal bank;
 
     address internal user;
     address internal admin;
     address internal hacker;
 
-    function setUp() public {
-        user = makeAddr("user");
+    function setUp() public {       //環境設定,初始都要一樣
+        user = makeAddr("user");    //生成user 不同的 address 
         admin = makeAddr("admin");
         hacker = makeAddr("hacker");
 
-        vm.prank(admin);
-        bank = new unsafeBank();
+        vm.prank(admin);           //msg.sender 為呼叫此function.在寫測試的時候,因為沒有指定誰是_owner(default 為 測試合約的owner)
+        bank = new unsafeBank();   //由於上面 vm.prank(admin); 建立一個 為admin 的bank as sender,但僅限下一行
     }
 
     function test_version() public {
@@ -48,12 +48,12 @@ contract BankTest is Test {
     event unsafeBank__depositToken(address indexed user, uint256 indexed amount);
 
     function test_deposit() public {
-        deal(user, 5 ether);
-
+        deal(user, 5 ether);  // 初始化,交易對象的ether
+        
         vm.prank(user);
-        vm.expectEmit(true, true, true, false);
-        emit unsafeBank__depositToken(user, 1 ether);
-        IUnsafeBank(address(bank)).deposit{value: 1 ether}();
+        vm.expectEmit(true, true, true, false); //判斷 event 哪幾個topic 需要加入測試 
+        emit unsafeBank__depositToken(user, 1 ether); 
+        IUnsafeBank(address(bank)).deposit{value: 1 ether}(); 
 
         uint256 amount = IUnsafeBank(address(bank)).balances(user);
         assertEq(amount, 1 ether);
@@ -142,8 +142,8 @@ contract BankTest is Test {
         vm.prank(user);
         IUnsafeBank(address(bank)).deposit{value: 10 ether}();
 
-        deal(hacker, 1 ether);
-        vm.startPrank(hacker);
+        deal(hacker, 1 ether);        
+        vm.startPrank(hacker);            // 使用hacker 角色去執行下面的行為,直到  vm.stopPrank();
         Hack hack = new Hack(bank);
         hack.deposit{value: 1 ether}();
         hack.withdrawAll();
