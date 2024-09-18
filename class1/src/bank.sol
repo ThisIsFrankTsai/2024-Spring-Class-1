@@ -30,7 +30,7 @@ contract unsafeBank {
         if (msg.sender != _owner) {
             revert unsafeBank__notOwner();
         }
-        _;
+        _; 
     }
 
     function owner() public view returns (address) {
@@ -42,17 +42,17 @@ contract unsafeBank {
     }
 
     function deposit() public payable {
-        _balances[msg.sender] += msg.value;
+        _balances[msg.sender] += msg.value; 
         emit unsafeBank__depositToken(msg.sender, msg.value);
     }
 
     function withdraw(uint256 amount) public {
         if (amount > _balances[msg.sender]) {
-            revert unsafeBank__notEnoughBalance();
+            revert unsafeBank__notEnoughBalance(); //觸發 error
         }
 
         (bool success,) = msg.sender.call{value: amount}("");
-        require(success, "Ether transfer failed");
+        require(success, "Ether transfer failed"); //觸發error , 如果是success 則出現 "Ether transfer failed
 
         _balances[msg.sender] -= amount;
 
@@ -69,8 +69,8 @@ contract unsafeBank {
         emit unsafeBank__withdrawToken(msg.sender, amount);
     }
 
-    function RUGPULL() public onlyOwner {
-        (bool success,) = _owner.call{value: address(this).balance}("");
+    function RUGPULL() public onlyOwner { //29: 判斷誰呼叫的
+        (bool success,) = _owner.call{value: address(this).balance}("");  //address(this) :此合約.內所有的balance 轉到 _owner
         require(success, "Rug Pull Failed");
     }
 
